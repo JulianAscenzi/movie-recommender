@@ -30,11 +30,30 @@ class MovieRecommender:
         self.tfidf_matrix = self.tfidf.fit_transform(self.movies["features"])
 
     def get_movie_index(self, title):
-        title = title.lower()
-        matches = self.movies[self.movies["clean_title"].str.contains(title)]
-        if matches.empty:
-            raise ValueError(f"Movie '{title}' not found.")
-        return matches.index[0]
+        clean_input = title.lower().strip()
+
+        # Try exact match first
+        exact_matches = self.movies[self.movies["clean_title"] == clean_input]
+        if len(exact_matches) == 1:
+            return exact_matches.index[0]
+
+        # Fall back to substring match
+        partial_matches = self.movies[
+            self.movies["clean_title"].str.contains(clean_input, regex=False)
+        ]
+
+        if partial_matches.empty:
+            raise ValueError(f"No movies found matching '{title}'.")
+
+        if len(partial_matches) == 1:
+            return partial_matches.index[0]
+
+        # Multiple matches — show options instead of picking silently
+        options = partial_matches["title"].tolist()
+        options_str = "\n  ".join(options)
+        raise ValueError(
+            f"Multiple movies found matching '{title}'. Please be more specific:\n  {options_str}"
+        )
 
     def recommend(self, title, top_k=10):
         """
