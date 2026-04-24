@@ -1,40 +1,41 @@
-import os
-import pandas as pd
+import logging
+from pathlib import Path
 
-DATA_PATH = "data"
+DATA_PATH = Path(__file__).parent.parent / "data"
+
+logger = logging.getLogger(__name__)
 
 
 def load_movies():
-    file_path = os.path.join(
-        DATA_PATH, "movies.csv"
-    )  # Load movies.csv files and return it like DataFrame.
+    """Load movies.csv and return it as a DataFrame."""
+    file_path = DATA_PATH / "movies.csv"
 
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("File movies.csv not found")
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    import pandas as pd
 
     movies = pd.read_csv(file_path)
-
-    print(f"movies.csv loaded correctly. rows: {len(movies)}")
+    logger.info(f"movies.csv loaded correctly. rows: {len(movies)}")
     return movies
 
 
 def load_ratings():
+    """Load ratings.csv and return it as a DataFrame."""
+    file_path = DATA_PATH / "ratings.csv"
 
-    file_path = os.path.join(
-        DATA_PATH, "ratings.csv"
-    )  # Load ratings.csv and return DataFrame.
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
 
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("File ratings.csv not found")
+    import pandas as pd
 
     ratings = pd.read_csv(file_path)
-
-    print(f"ratings.csv loaded correctly. rows: {len(ratings)}")
+    logger.info(f"ratings.csv loaded correctly. rows: {len(ratings)}")
     return ratings
 
 
-def load_all():  # Loads all the necesary tables for the sistem
+def load_all():
+    """Load all the necessary tables for the system."""
     movies = load_movies()
     ratings = load_ratings()
-
     return movies, ratings
