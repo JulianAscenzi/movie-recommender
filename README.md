@@ -57,7 +57,7 @@ You need Python 3.10 or higher.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/movie-recommender.git
+git clone https://github.com/JulianAscenzi/movie-recommender.git
 cd movie-recommender
 
 # Create and activate a virtual environment
