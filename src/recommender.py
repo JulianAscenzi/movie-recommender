@@ -22,22 +22,26 @@ class MovieRecommender:
         self.movies = preprocess_movies(movies)
 
     def build_model(self):
-        """
-        Build the TF-IDF vectors for all movies.
-        Does NOT compute full similarity matrix (too big).
-        """
+        # GUARD: check that data was loaded before trying to use it.
+        # self.movies is set to None in __init__, and only gets a real
+        # value after load_and_prepare_data() runs successfully.
+        if self.movies is None:
+            raise RuntimeError(
+                "No data loaded. Call load_and_prepare_data() before build_model()."
+            )
+        # If we get here, self.movies exists and we can safely use it.
         self.tfidf = TfidfVectorizer(stop_words="english")
         self.tfidf_matrix = self.tfidf.fit_transform(self.movies["features"])
 
     def get_movie_index(self, title):
         clean_input = title.lower().strip()
 
-        # Try exact match first
+        # 1. Try exact match first
         exact_matches = self.movies[self.movies["clean_title"] == clean_input]
         if len(exact_matches) == 1:
             return exact_matches.index[0]
 
-        # Fall back to substring match
+        # 2. Fall back to substring match
         partial_matches = self.movies[
             self.movies["clean_title"].str.contains(clean_input, regex=False)
         ]
@@ -48,7 +52,7 @@ class MovieRecommender:
         if len(partial_matches) == 1:
             return partial_matches.index[0]
 
-        # Multiple matches — show options instead of picking silently
+        # 3. Multiple matches — show options instead of picking silently
         options = partial_matches["title"].tolist()
         options_str = "\n  ".join(options)
         raise ValueError(
@@ -56,11 +60,14 @@ class MovieRecommender:
         )
 
     def recommend(self, title, top_k=10):
-        """
-        Compute similarity ONLY for the target movie.
-        Uses linear_kernel, which is efficient for sparse TF-IDF.
-        """
+        # GUARD: check that build_model() has been called.
+        # self.tfidf_matrix is None until build_model() runs.
+        if self.tfidf_matrix is None:
+            raise RuntimeError(
+                "Model not built. Call build_model() before recommend()."
+            )
 
+        # Safe to proceed — the matrix exists.
         idx = self.get_movie_index(title)
 
         # Get similarity scores only for the movie we care about
