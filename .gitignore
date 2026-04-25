@@ -12,3 +12,6 @@ data/*.csv
 # Entornos virtuales
 venv/
 .env/
+
+# Pytest
+.pytest_cache/
