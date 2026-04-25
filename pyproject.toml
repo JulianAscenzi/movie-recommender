@@ -20,6 +20,9 @@ dev = [
     "jupyter",
 ]
 
+[project.scripts]
+recommend = "main:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
