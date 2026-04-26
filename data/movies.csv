@@ -1,0 +1,13 @@
+movieId,title,genres
+1,Toy Story (1995),Adventure|Animation|Children|Comedy|Fantasy
+2,Toy Story 2 (1999),Adventure|Animation|Children|Comedy|Fantasy
+3,Toy Story 3 (2010),Adventure|Animation|Children|Comedy|Fantasy
+4,A Bug's Life (1998),Adventure|Animation|Children|Comedy
+5,"Monsters, Inc. (2001)",Adventure|Animation|Children|Comedy|Fantasy
+6,Finding Nemo (2003),Adventure|Animation|Children|Comedy
+7,The Incredibles (2004),Action|Adventure|Animation|Children|Comedy
+8,Star Wars: Episode IV - A New Hope (1977),Action|Adventure|Sci-Fi
+9,Star Wars: Episode V - The Empire Strikes Back (1980),Action|Adventure|Sci-Fi
+10,Star Wars: Episode VI - Return of the Jedi (1983),Action|Adventure|Sci-Fi
+11,Jumanji (1995),Adventure|Children|Fantasy
+12,Grumpier Old Men (1995),Comedy|Romance
