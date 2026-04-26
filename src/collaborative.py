@@ -1,14 +1,16 @@
-import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-class CollaborativeRecommender:  # Item-based collaborative filtering recommender.
+class CollaborativeRecommender:
+    """Item-based collaborative filtering built on a sparse ratings matrix."""
 
     def __init__(self):
         self.movies = None
         self.ratings = None
-        self.movie_matrix = None
-        self.similarity_matrix = None
+        self.item_matrix = None
+        self.movie_ids = None
+        self.movie_id_to_index = {}
 
     def prepare(self, movies, ratings):
         self.movies = movies
@@ -18,19 +20,26 @@ class CollaborativeRecommender:  # Item-based collaborative filtering recommende
         if self.ratings is None or self.movies is None:
             raise RuntimeError("No data loaded. Call prepare() before build_model().")
 
-        self.movie_matrix = self.ratings.pivot_table(  # Rows are userId, columns are movieId, values are rating
-            index="userId", columns="movieId", values="rating"
-        ).fillna(
-            0
-        )  # This replaces missing ratings with Zero
+        ratings = self.ratings.groupby(["userId", "movieId"], as_index=False)[
+            "rating"
+        ].mean()
 
-        self.similarity_matrix = cosine_similarity(
-            self.movie_matrix.T
-        )  # .T transposes the matrix so we're comparing columns (movies) against each other
+        user_codes = ratings["userId"].astype("category").cat.codes
+        movie_categories = ratings["movieId"].astype("category")
+        movie_codes = movie_categories.cat.codes
 
-    def get_movie_index(
-        self, title
-    ):  # Works the same as in MovieRecommender but returns movieId
+        self.movie_ids = movie_categories.cat.categories.to_list()
+        self.movie_id_to_index = {
+            movie_id: index for index, movie_id in enumerate(self.movie_ids)
+        }
+        self.item_matrix = csr_matrix(
+            (
+                ratings["rating"].to_numpy(),
+                (movie_codes.to_numpy(), user_codes.to_numpy()),
+            )
+        )
+
+    def get_movie_index(self, title):
         if self.movies is None:
             raise RuntimeError(
                 "No data loaded. Call prepare() before get_movie_index()."
@@ -47,9 +56,7 @@ class CollaborativeRecommender:  # Item-based collaborative filtering recommende
         ]
 
         if partial_matches.empty:
-            raise ValueError(
-                f"No movies found matching '{title}'."
-            )  # No movie to recommend
+            raise ValueError(f"No movies found matching '{title}'.")
 
         if len(partial_matches) == 1:
             return partial_matches.iloc[0]["movieId"]
@@ -61,36 +68,31 @@ class CollaborativeRecommender:  # Item-based collaborative filtering recommende
         )
 
     def recommend(self, title, top_k=10):
-        if self.similarity_matrix is None:
+        if self.item_matrix is None:
             raise RuntimeError(
                 "Model not built. Call build_model() before recommend()."
             )
 
         movie_id = self.get_movie_index(title)
+        row_index = self.movie_id_to_index.get(movie_id)
 
-        if (
-            movie_id not in self.movie_matrix.columns
-        ):  # Checks if the movie exists the columns. A movie can have zero ratings
+        if row_index is None:
             raise ValueError(f"Movie '{title}' exists but has no ratings data.")
 
-        col_index = self.movie_matrix.columns.get_loc(
-            movie_id
-        )  # Converts a movieId value into a positional index
+        sim_scores = cosine_similarity(
+            self.item_matrix[row_index], self.item_matrix
+        ).flatten()
+        top_indices = sim_scores.argsort()[::-1][1 : top_k + 1]
 
-        sim_scores = list(enumerate(self.similarity_matrix[col_index]))
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1 : top_k + 1]
-
-        similar_movie_ids = [self.movie_matrix.columns[i] for i, _ in sim_scores]
-        scores = [score for _, score in sim_scores]
+        similar_movie_ids = [self.movie_ids[index] for index in top_indices]
+        score_map = {
+            movie_id: sim_scores[index]
+            for movie_id, index in zip(similar_movie_ids, top_indices)
+        }
 
         results = self.movies[self.movies["movieId"].isin(similar_movie_ids)][
             ["movieId", "title", "genres"]
         ].copy()
-
-        # similarity_score is a new column. It's a number between 0 and 1
-        # 1 means identical rating patterns and 0 means no overlap at all
-        score_map = dict(zip(similar_movie_ids, scores))
         results["similarity_score"] = results["movieId"].map(score_map)
         results = results.sort_values("similarity_score", ascending=False)
 
