@@ -1,4 +1,4 @@
-import argparse  # This is a module that let me handle reading arguments from the terminal.
+import argparse
 from src.hybrid import HybridRecommender
 
 
