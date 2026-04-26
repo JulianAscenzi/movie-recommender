@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def clean_title(title):
     """
     I want a clean movie title so they are easier to work with.
