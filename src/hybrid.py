@@ -79,7 +79,9 @@ class HybridRecommender:
             content_results["hybrid_score"] = content_results["content_score"]
             return content_results[["title", "genres", "hybrid_score"]].head(top_k)
 
-        collab_results = collab_results.rename(columns={"similarity_score": "collab_score"})
+        collab_results = collab_results.rename(
+            columns={"similarity_score": "collab_score"}
+        )
         collab_results["collab_score"] = self._normalize(collab_results["collab_score"])
 
         merged = pd.merge(
@@ -87,7 +89,23 @@ class HybridRecommender:
             collab_results[["title", "collab_score"]],
             on="title",
             how="outer",
-        ).fillna(0)
+        )
+        merged["content_score"] = merged["content_score"].fillna(0)
+        merged["collab_score"] = merged["collab_score"].fillna(0)
+        merged["genres"] = merged["genres"].fillna("")
+
+        # ← líneas nuevas: recuperar géneros faltantes desde el dataframe original
+        movies_genres = self.content_recommender.movies[["title", "genres"]].rename(
+            columns={"genres": "genres_original"}
+        )
+        merged = pd.merge(merged, movies_genres, on="title", how="left")
+        merged["genres"] = merged.apply(
+            lambda row: (
+                row["genres_original"] if row["genres"] == "" else row["genres"]
+            ),
+            axis=1,
+        )
+        merged = merged.drop(columns=["genres_original"])
 
         merged["hybrid_score"] = (
             self.content_weight * merged["content_score"]

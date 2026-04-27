@@ -55,8 +55,9 @@ def main():
     try:
         results = recommender.recommend(args.title, top_k=args.top)
         for i, (_, row) in enumerate(results.iterrows(), start=1):
+            genres_display = row["genres"] if row["genres"] != 0 else ""
             print(
-                f"{i:>2}. {row['title']:<50} {row['genres']:<40} score: {row['hybrid_score']:.3f}"
+                f"{i:>2}. {row['title']:<50} {genres_display:<40} score: {row['hybrid_score']:.3f}"
             )
     except ValueError as e:
         print(f"Error: {e}")

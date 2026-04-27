@@ -28,11 +28,13 @@ def process_genres(movies):
     """
     Convert genres from string to list. -> "Action|Comedy" -> ["action", "comedy"]
     """
-
-    movies["genres"] = movies["genres"].fillna("")  # if the movie doesn't have a genre
-
-    movies["genres_list"] = movies["genres"].apply(lambda x: x.lower().split("|"))
-
+    movies["genres"] = movies["genres"].fillna("")
+    movies["genres"] = movies["genres"].str.replace(
+        "(no genres listed)", "", regex=False
+    )
+    movies["genres_list"] = movies["genres"].apply(
+        lambda x: x.lower().split("|") if x else []
+    )
     return movies
 
 
@@ -40,11 +42,8 @@ def create_features(movies):
     """
     Build a text feature per movie for similarity calculations.
     """
-
     movies["features"] = movies.apply(
-        lambda row: row["clean_title"]
-        + " "
-        + " ".join(row["genres_list"]),
+        lambda row: " ".join(row["genres_list"]) * 3 + " " + row["clean_title"],
         axis=1,
     )
     return movies
