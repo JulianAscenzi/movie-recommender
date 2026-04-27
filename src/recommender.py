@@ -7,10 +7,7 @@ from src.preprocessing import preprocess_movies
 
 
 class MovieRecommender:
-    """
-    Memory-efficient content-based recommender using TF-IDF + linear_kernel.
-    Computes similarity only for one movie at a time.
-    """
+    """Content-based recommender using TF-IDF + linear_kernel."""
 
     def __init__(self):
         self.movies = None
@@ -22,14 +19,10 @@ class MovieRecommender:
         self.movies = preprocess_movies(movies)
 
     def build_model(self):
-        # GUARD: check that data was loaded before trying to use it.
-        # self.movies is set to None in __init__, and only gets a real
-        # value after load_and_prepare_data() runs successfully.
         if self.movies is None:
             raise RuntimeError(
                 "No data loaded. Call load_and_prepare_data() before build_model()."
             )
-        # If we get here, self.movies exists and we can safely use it.
         self.tfidf = TfidfVectorizer(stop_words="english")
         self.tfidf_matrix = self.tfidf.fit_transform(self.movies["features"])
 
@@ -60,22 +53,17 @@ class MovieRecommender:
         )
 
     def recommend(self, title, top_k=10):
-        # GUARD: check that build_model() has been called.
-        # self.tfidf_matrix is None until build_model() runs.
         if self.tfidf_matrix is None:
             raise RuntimeError(
                 "Model not built. Call build_model() before recommend()."
             )
 
-        # Safe to proceed — the matrix exists.
         idx = self.get_movie_index(title)
 
-        # Get similarity scores only for the movie we care about
         sim_scores = linear_kernel(
             self.tfidf_matrix[idx : idx + 1], self.tfidf_matrix
         ).flatten()
 
-        # Get top-k similar movies
         top_indices = sim_scores.argsort()[::-1][1 : top_k + 1]
 
         return self.movies.iloc[top_indices][["title", "genres"]]

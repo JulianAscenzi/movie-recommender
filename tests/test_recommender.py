@@ -2,7 +2,7 @@ import pytest
 from src.recommender import MovieRecommender
 
 
-def test_recommender_runs():  # This is the happy path test
+def test_recommender_runs():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     recommender.build_model()
@@ -11,20 +11,20 @@ def test_recommender_runs():  # This is the happy path test
     assert len(results) == 5
 
 
-def test_build_model_without_data_raises():  # Creates a fresh MovieRecommender and immediately calls build_model()
+def test_build_model_without_data_raises():
     recommender = MovieRecommender()
     with pytest.raises(RuntimeError, match="load_and_prepare_data"):
         recommender.build_model()
 
 
-def test_recommend_without_model_raises():  # Loads data but skips build_model()
+def test_recommend_without_model_raises():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     with pytest.raises(RuntimeError, match="build_model"):
         recommender.recommend("toy story")
 
 
-def test_recommend_unknown_movie_raises():  # Passes a nonsense string
+def test_recommend_unknown_movie_raises():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     recommender.build_model()
@@ -32,7 +32,7 @@ def test_recommend_unknown_movie_raises():  # Passes a nonsense string
         recommender.recommend("xkqzwmvbnp")
 
 
-def test_recommend_ambiguous_title_raises():  # Passes "toy story" as a substring that matches multiple movies (Toy Story 1,2,3...)
+def test_recommend_ambiguous_title_raises():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     recommender.build_model()
@@ -40,7 +40,7 @@ def test_recommend_ambiguous_title_raises():  # Passes "toy story" as a substrin
         recommender.recommend("star wars")
 
 
-def test_recommend_exact_title_returns_results():  # Passes the full exact title
+def test_recommend_exact_title_returns_results():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     recommender.build_model()
@@ -49,7 +49,7 @@ def test_recommend_exact_title_returns_results():  # Passes the full exact title
     assert len(results) == 5
 
 
-def test_recommend_returns_correct_columns():  # Tests that the DataFrame has the columns "title" and "genre"
+def test_recommend_returns_correct_columns():
     recommender = MovieRecommender()
     recommender.load_and_prepare_data()
     recommender.build_model()

@@ -1,10 +1,13 @@
 # Movie Recommender
 
-A content-based movie recommendation system built to practice Python, machine learning pipelines, and software engineering fundamentals.
+A hybrid movie recommendation system I built to practice Python, data pipelines, and software engineering fundamentals.
 
 ## What it does
 
-Given a movie title, it returns a list of similar movies based on title and genre using TF-IDF vectorization and cosine similarity.
+Given a movie title, it returns similar movies by blending:
+
+- **Content-based filtering** (TF-IDF over title + genres)
+- **Collaborative filtering** (item-item similarity from ratings)
 
 ```
 $ recommend "toy story" --top 5
@@ -25,6 +28,7 @@ Top 5 recommendations for 'toy story':
 
 - Loading and preprocessing data with pandas
 - Building a content-based recommendation system with scikit-learn
+- Adding collaborative filtering and combining ranking signals
 - Writing and organizing tests with pytest
 - Structuring a Python project with `pyproject.toml`
 - Handling edge cases and writing meaningful error messages
@@ -35,12 +39,13 @@ Top 5 recommendations for 'toy story':
 ```
 movie-recommender/
 │
-├── data/                   # CSV files (not tracked in git)
-├── notebooks/              # Jupyter notebooks for exploration
+├── data/                   # CSV files
 ├── src/
 │   ├── data_loader.py      # Loads movies.csv and ratings.csv
 │   ├── preprocessing.py    # Cleans titles, processes genres, builds features
-│   └── recommender.py      # TF-IDF model and recommendation logic
+│   ├── recommender.py      # Content-based recommendation logic
+│   ├── collaborative.py    # Item-based collaborative filtering
+│   └── hybrid.py           # Blends content + collaborative scores
 ├── tests/
 │   ├── test_load.py
 │   ├── test_preprocessing.py
@@ -82,6 +87,9 @@ recommend "toy story"
 # Get a custom number of recommendations
 recommend "toy story" --top 5
 
+# Change hybrid weights (must add up to 1.0)
+recommend "toy story" --content-weight 0.7 --collab-weight 0.3
+
 # See all options
 recommend --help
 ```
@@ -98,3 +106,9 @@ pytest
 - numpy
 - scikit-learn
 - scipy
+
+## Notes and tradeoffs
+
+- I normalize content and collaborative scores before blending so one side does not dominate.
+- Collaborative filtering can fail on sparse data or low-memory environments, so the app falls back to content-only recommendations.
+- Title matching supports exact matches first, then partial matches, and asks for clarification when the query is ambiguous.

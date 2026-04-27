@@ -1,6 +1,6 @@
 def clean_title(title):
     """
-    I want a clean movie title so they are easier to work with.
+    Normalize a movie title so it is easier to match.
 
     Example:
     "Toy Story (1995)" -> "toy story"
@@ -38,16 +38,14 @@ def process_genres(movies):
 
 def create_features(movies):
     """
-    Return the features of the movie, this will be usefull when we use similarity calculations.
+    Build a text feature per movie for similarity calculations.
     """
 
     movies["features"] = movies.apply(
         lambda row: row["clean_title"]
         + " "
-        + " ".join(
-            row["genres_list"]
-        ),  # this takes the list and put the items together with a space
-        axis=1,  # this is for Pandas to look at the entire row, one by one
+        + " ".join(row["genres_list"]),
+        axis=1,
     )
     return movies
 
