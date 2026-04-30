@@ -12,8 +12,9 @@ dependencies = [
     "pandas",
     "scikit-learn",
     "scipy",
+    "fastapi",
+    "uvicorn",
 ]
-
 [project.optional-dependencies]
 dev = [
     "pytest",
